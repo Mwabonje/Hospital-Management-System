@@ -19,6 +19,7 @@ const Patients: React.FC = () => {
     const [patients, setPatients] = useState<Patient[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [saving, setSaving] = useState(false);
     const [newPatient, setNewPatient] = useState({
         full_name: '',
         gender: 'Male',
@@ -28,7 +29,8 @@ const Patients: React.FC = () => {
     });
 
     useEffect(() => {
-        if (location.state?.openAddModal) {
+        const state = location.state as any;
+        if (state?.openAddModal) {
             setIsModalOpen(true);
         }
     }, [location]);
@@ -80,14 +82,24 @@ const Patients: React.FC = () => {
 
     const handleAddPatient = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        const ageInt = parseInt(newPatient.age);
+        if (isNaN(ageInt)) {
+            alert("Please enter a valid age.");
+            return;
+        }
+
+        setSaving(true);
         try {
             const { error } = await insforge.database.from('patients').insert({
                 ...newPatient,
-                age: parseInt(newPatient.age),
+                age: ageInt,
                 last_visit: new Date().toISOString().split('T')[0]
             });
 
-            if (!error) {
+            if (error) {
+                alert("Failed to save patient: " + error.message);
+            } else {
                 setIsModalOpen(false);
                 setNewPatient({
                     full_name: '',
@@ -98,8 +110,11 @@ const Patients: React.FC = () => {
                 });
                 fetchPatients();
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Insert error:', err);
+            alert("An unexpected error occurred: " + err.message);
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -267,7 +282,13 @@ const Patients: React.FC = () => {
                                     </select>
                                 </div>
                             </div>
-                            <button type="submit" className="primary-btn w-full mt-4">Save Patient</button>
+                            <button type="submit" className="primary-btn w-full mt-4" disabled={saving}>
+                                {saving ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <Loader2 size={18} className="animate-spin" /> Saving...
+                                    </span>
+                                ) : "Save Patient"}
+                            </button>
                         </form>
                     </div>
                 </div>

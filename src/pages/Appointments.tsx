@@ -24,6 +24,8 @@ const Appointments: React.FC = () => {
     room: ''
   });
 
+  const [saving, setSaving] = useState(false);
+
   const fetchAppointments = async () => {
     setLoading(true);
     try {
@@ -50,13 +52,16 @@ const Appointments: React.FC = () => {
 
   const handleSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSaving(true);
     try {
       const { error } = await insforge.database.from('appointments').insert({
         ...newAppointment,
         status: 'Pending'
       });
 
-      if (!error) {
+      if (error) {
+        alert("Failed to schedule appointment: " + error.message);
+      } else {
         setIsModalOpen(false);
         setNewAppointment({
           patient_name: '',
@@ -67,8 +72,11 @@ const Appointments: React.FC = () => {
         });
         fetchAppointments();
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Insert error:', err);
+      alert("An unexpected error occurred: " + err.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -260,7 +268,13 @@ const Appointments: React.FC = () => {
                   onChange={(e) => setNewAppointment({ ...newAppointment, room: e.target.value })}
                 />
               </div>
-              <button type="submit" className="primary-btn w-full mt-4">Confirm Appointment</button>
+              <button type="submit" className="primary-btn w-full mt-4" disabled={saving}>
+                {saving ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 size={18} className="animate-spin" /> Scheduling...
+                  </span>
+                ) : "Confirm Appointment"}
+              </button>
             </form>
           </div>
         </div>

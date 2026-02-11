@@ -13,6 +13,7 @@ import {
   Search,
   ChevronRight
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const SidebarItem = ({ icon: Icon, label, path, active }: { icon: any, label: string, path: string, active: boolean }) => (
   <Link to={path} className={`sidebar-item ${active ? 'active' : ''}`}>
@@ -25,8 +26,10 @@ const SidebarItem = ({ icon: Icon, label, path, active }: { icon: any, label: st
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 
@@ -88,10 +91,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </button>
             <div className="user-profile">
               <div className="user-info">
-                <span className="user-name">Dr. Smith</span>
-                <span className="user-role">Administrator</span>
+                <span className="user-name">{user?.name || user?.email || 'User'}</span>
+                <span className="user-role">{user?.role || 'Staff'}</span>
               </div>
-              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Smith" alt="User Avatar" />
+              <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || 'default'}`} alt="User Avatar" />
             </div>
           </div>
         </header>

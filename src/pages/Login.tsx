@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
-import { insforge } from '../utils/insforge';
+import { useAuth } from '../context/AuthContext';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,21 +20,10 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      const { data, error: loginError } = await insforge.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password
-      });
-
-      if (loginError) {
-        setError(loginError.message);
-        return;
-      }
-
-      if (data?.accessToken) {
-        navigate('/dashboard');
-      }
+      await login(formData.email, formData.password);
+      navigate('/dashboard');
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred");
+      setError(err.message || "Invalid credentials");
     } finally {
       setLoading(false);
     }
