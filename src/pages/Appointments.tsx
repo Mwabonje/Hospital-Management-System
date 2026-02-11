@@ -235,10 +235,9 @@ const Appointments: React.FC = () => {
                 <div className="input-group w-full">
                   <label>Time</label>
                   <input
-                    type="text"
+                    type="time"
                     required
                     className="styled-input"
-                    placeholder="e.g. 09:30 AM"
                     value={newAppointment.appointment_time}
                     onChange={(e) => setNewAppointment({ ...newAppointment, appointment_time: e.target.value })}
                   />
