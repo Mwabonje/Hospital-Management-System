@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, UserCheck, AlertCircle, CheckCircle } from 'lucide-react';
+import { User, Mail, Lock, UserCheck, AlertCircle } from 'lucide-react';
 import { insforge } from '../utils/insforge';
 
 const SignUp: React.FC = () => {
@@ -16,6 +16,9 @@ const SignUp: React.FC = () => {
         password: '',
         confirmPassword: ''
     });
+
+    const [otp, setOtp] = useState('');
+    const [verifying, setVerifying] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -59,6 +62,47 @@ const SignUp: React.FC = () => {
         }
     };
 
+    const handleVerifyEmail = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+        setVerifying(true);
+
+        try {
+            const { error: verifyError } = await insforge.auth.verifyEmail({
+                email: formData.email,
+                otp: otp
+            });
+
+            if (verifyError) {
+                setError(verifyError.message);
+                return;
+            }
+
+            navigate('/dashboard');
+        } catch (err: any) {
+            setError(err.message || "Verification failed");
+        } finally {
+            setVerifying(false);
+        }
+    };
+
+    const handleResendOtp = async () => {
+        setError(null);
+        try {
+            const { error: resendError } = await insforge.auth.resendVerificationEmail({
+                email: formData.email
+            });
+            if (resendError) {
+                setError(resendError.message);
+            } else {
+                // Show a brief success message or notification
+                alert("Verification code resent!");
+            }
+        } catch (err: any) {
+            setError(err.message);
+        }
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({
             ...formData,
@@ -77,8 +121,8 @@ const SignUp: React.FC = () => {
             <div className="login-form-side">
                 <div className="form-card premium-card">
                     <div className="form-header">
-                        <h2>Create Account</h2>
-                        <p>Enter your details to register as a healthcare professional</p>
+                        <h2>{success ? 'Verify Email' : 'Create Account'}</h2>
+                        <p>{success ? 'Enter the code sent to your email' : 'Enter your details to register as a healthcare professional'}</p>
                     </div>
 
                     {error && (
@@ -88,13 +132,53 @@ const SignUp: React.FC = () => {
                     )}
 
                     {success ? (
-                        <div className="text-center py-6">
-                            <div className="flex justify-center mb-4 text-green-500">
-                                <CheckCircle size={64} />
+                        <div className="verification-form flex col gap-6">
+                            <div className="flex justify-center mb-2 text-primary">
+                                <Mail size={48} />
                             </div>
-                            <h3>Verify Your Email</h3>
-                            <p className="text-muted mt-2">We've sent a verification code to <strong>{formData.email}</strong>. Please check your inbox.</p>
-                            <button onClick={() => navigate('/login')} className="primary-btn w-full mt-6">Go to Login</button>
+                            <p className="text-center text-sm text-muted">
+                                We've sent a 6-digit verification code to <br />
+                                <strong>{formData.email}</strong>
+                            </p>
+
+                            <form onSubmit={handleVerifyEmail} className="flex col gap-4">
+                                <div className="input-group">
+                                    <label>Verification Code</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Enter 6-digit code"
+                                        required
+                                        maxLength={6}
+                                        className="styled-input text-center text-2xl tracking-widest"
+                                        value={otp}
+                                        onChange={(e) => setOtp(e.target.value)}
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="primary-btn w-full flex items-center justify-center gap-2"
+                                    disabled={verifying}
+                                >
+                                    {verifying ? 'Verifying...' : 'Verify & Continue'}
+                                </button>
+                            </form>
+
+                            <div className="text-center">
+                                <p className="text-xs text-muted mb-2">Didn't receive the code?</p>
+                                <button
+                                    onClick={handleResendOtp}
+                                    className="text-primary text-sm font-bold hover:underline"
+                                >
+                                    Resend Verification Code
+                                </button>
+                            </div>
+
+                            <button
+                                onClick={() => setSuccess(false)}
+                                className="text-muted text-sm hover:underline"
+                            >
+                                ← Back to Sign Up
+                            </button>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="flex col gap-4">
