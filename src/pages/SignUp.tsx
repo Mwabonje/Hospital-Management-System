@@ -146,12 +146,17 @@ const SignUp: React.FC = () => {
                                     <label>Verification Code</label>
                                     <input
                                         type="text"
-                                        placeholder="Enter 6-digit code"
+                                        placeholder="000000"
                                         required
                                         maxLength={6}
+                                        pattern="\d{6}"
+                                        inputMode="numeric"
                                         className="styled-input text-center text-2xl tracking-widest"
                                         value={otp}
-                                        onChange={(e) => setOtp(e.target.value)}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/\D/g, '');
+                                            setOtp(val);
+                                        }}
                                     />
                                 </div>
                                 <button
