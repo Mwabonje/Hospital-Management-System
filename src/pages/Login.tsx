@@ -1,14 +1,49 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, LogIn } from 'lucide-react';
+import { Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
+import { insforge } from '../utils/insforge';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate login
-    navigate('/dashboard');
+    setError(null);
+    setLoading(true);
+
+    try {
+      const { data, error: loginError } = await insforge.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password
+      });
+
+      if (loginError) {
+        setError(loginError.message);
+        return;
+      }
+
+      if (data?.accessToken) {
+        navigate('/dashboard');
+      }
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
   return (
@@ -26,12 +61,25 @@ const Login: React.FC = () => {
             <p>Please enter your details to login</p>
           </div>
 
+          {error && (
+            <div className="flex items-center gap-2 p-3 mb-4 rounded bg-red-50 text-red-600 text-sm border border-red-100">
+              <AlertCircle size={16} /> {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="flex col gap-4">
             <div className="input-group">
               <label>Email Address</label>
               <div className="input-with-icon">
                 <Mail size={18} />
-                <input type="email" placeholder="doctor@hospital.com" required />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="doctor@hospital.com"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                />
               </div>
             </div>
 
@@ -39,7 +87,14 @@ const Login: React.FC = () => {
               <label>Password</label>
               <div className="input-with-icon">
                 <Lock size={18} />
-                <input type="password" placeholder="••••••••" required />
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="••••••••"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                />
               </div>
             </div>
 
@@ -50,8 +105,12 @@ const Login: React.FC = () => {
               <a href="#" className="forgot-link">Forgot password?</a>
             </div>
 
-            <button type="submit" className="primary-btn w-full flex items-center justify-center gap-4">
-              <LogIn size={20} /> Login
+            <button
+              type="submit"
+              className="primary-btn w-full flex items-center justify-center gap-4"
+              disabled={loading}
+            >
+              <LogIn size={20} /> {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
 

@@ -113,6 +113,47 @@ input {
   width: 100%;
 }
 
+/* Utility - Auth Misc */
+.bg-red-50 {
+  background-color: #fef2f2;
+}
+
+.text-red-600 {
+  color: #dc2626;
+}
+
+.border-red-100 {
+  border-color: #fee2e2;
+}
+
+.text-green-500 {
+  color: #10b981;
+}
+
+.rounded {
+  border-radius: 0.25rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.p-3 {
+  padding: 0.75rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.border {
+  border-width: 1px;
+}
+
+.border-red-100 {
+  border-color: #fee2e2;
+}
+
 /* Auth Layout Styles */
 .login-container {
   display: grid;
