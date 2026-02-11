@@ -1,101 +1,107 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-    LayoutDashboard,
-    Users,
-    Calendar,
-    UserRound,
-    Pill,
-    FileText,
-    Settings,
-    LogOut,
-    Bell,
-    Search,
-    ChevronRight
+  LayoutDashboard,
+  Users,
+  Calendar,
+  UserRound,
+  Pill,
+  FileText,
+  Settings,
+  LogOut,
+  Bell,
+  Search,
+  ChevronRight
 } from 'lucide-react';
 
 const SidebarItem = ({ icon: Icon, label, path, active }: { icon: any, label: string, path: string, active: boolean }) => (
-    <Link to={path} className={`sidebar-item ${active ? 'active' : ''}`}>
-        <Icon size={20} />
-        <span>{label}</span>
-        {active && <ChevronRight size={16} className="active-chevron" />}
-    </Link>
+  <Link to={path} className={`sidebar-item ${active ? 'active' : ''}`}>
+    <Icon size={20} />
+    <span>{label}</span>
+    {active && <ChevronRight size={16} className="active-chevron" />}
+  </Link>
 );
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const location = useLocation();
-    const navigate = useNavigate();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-    const handleLogout = () => {
-        navigate('/login');
-    };
+  const handleLogout = () => {
+    navigate('/login');
+  };
 
-    const menuItems = [
-        { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-        { icon: Users, label: 'Patients', path: '/patients' },
-        { icon: Calendar, label: 'Appointments', path: '/appointments' },
-        { icon: UserRound, label: 'Doctors', path: '/doctors' },
-        { icon: Pill, label: 'Pharmacy', path: '/pharmacy' },
-        { icon: FileText, label: 'Billing', path: '/billing' },
-        { icon: Settings, label: 'Settings', path: '/settings' },
-    ];
+  const menuItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+    { icon: Users, label: 'Patients', path: '/patients' },
+    { icon: Calendar, label: 'Appointments', path: '/appointments' },
+    { icon: UserRound, label: 'Doctors', path: '/doctors' },
+    { icon: Pill, label: 'Pharmacy', path: '/pharmacy' },
+    { icon: FileText, label: 'Billing', path: '/billing' },
+    { icon: Settings, label: 'Settings', path: '/settings' },
+  ];
 
-    return (
-        <div className="layout-container">
-            <aside className="sidebar">
-                <div className="sidebar-brand">
-                    <div className="brand-icon">H</div>
-                    <span>HMS Premium</span>
-                </div>
+  return (
+    <div className="layout-container">
+      <aside className="sidebar">
+        <div className="sidebar-brand">
+          <div className="brand-icon">H</div>
+          <span>HMS Premium</span>
+        </div>
 
-                <nav className="sidebar-nav">
-                    {menuItems.map((item) => (
-                        <SidebarItem
-                            key={item.path}
-                            icon={item.icon}
-                            label={item.label}
-                            path={item.path}
-                            active={location.pathname === item.path}
-                        />
-                    ))}
-                </nav>
+        <nav className="sidebar-nav">
+          {menuItems.map((item) => (
+            <SidebarItem
+              key={item.path}
+              icon={item.icon}
+              label={item.label}
+              path={item.path}
+              active={location.pathname === item.path}
+            />
+          ))}
+        </nav>
 
-                <div className="sidebar-footer">
-                    <button onClick={handleLogout} className="logout-btn">
-                        <LogOut size={20} />
-                        <span>Logout</span>
-                    </button>
-                </div>
-            </aside>
+        <div className="sidebar-footer">
+          <button onClick={handleLogout} className="logout-btn">
+            <LogOut size={20} />
+            <span>Logout</span>
+          </button>
+        </div>
+      </aside>
 
-            <main className="main-area">
-                <header className="topbar">
-                    <div className="search-container">
-                        <Search size={18} />
-                        <input type="text" placeholder="Search Patients, Appointments..." />
-                    </div>
+      <main className="main-area">
+        <header className="topbar">
+          <div className="search-container">
+            <Search size={18} />
+            <input
+              type="text"
+              placeholder="Search Patients, Appointments..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') alert(`Searching for: ${e.currentTarget.value}`);
+              }}
+            />
+          </div>
 
-                    <div className="topbar-actions">
-                        <button className="icon-btn">
-                            <Bell size={20} />
-                            <span className="badge"></span>
-                        </button>
-                        <div className="user-profile">
-                            <div className="user-info">
-                                <span className="user-name">Dr. Smith</span>
-                                <span className="user-role">Administrator</span>
-                            </div>
-                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Smith" alt="User Avatar" />
-                        </div>
-                    </div>
-                </header>
+          <div className="topbar-actions">
+            <button className="icon-btn" onClick={() => alert("No new notifications")}>
+              <Bell size={20} />
+              <span className="badge"></span>
+            </button>
+            <div className="user-profile">
+              <div className="user-info">
+                <span className="user-name">Dr. Smith</span>
+                <span className="user-role">Administrator</span>
+              </div>
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Smith" alt="User Avatar" />
+            </div>
+          </div>
+        </header>
 
-                <section className="content-viewport">
-                    {children}
-                </section>
-            </main>
+        <section className="content-viewport">
+          {children}
+        </section>
+      </main>
 
-            <style>{`
+      <style>{`
         .layout-container {
           display: flex;
           height: 100vh;
@@ -301,8 +307,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           padding: 2rem;
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 };
 
 export default Layout;

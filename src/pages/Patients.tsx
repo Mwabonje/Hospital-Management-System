@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Plus, MoreHorizontal, Loader2, X } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { Search, Filter, Plus, Loader2, X, Trash2, Eye } from 'lucide-react';
 import { insforge } from '../utils/insforge';
 
 interface Patient {
@@ -13,6 +14,7 @@ interface Patient {
 }
 
 const Patients: React.FC = () => {
+    const location = useLocation();
     const [searchTerm, setSearchTerm] = useState('');
     const [patients, setPatients] = useState<Patient[]>([]);
     const [loading, setLoading] = useState(true);
@@ -24,6 +26,12 @@ const Patients: React.FC = () => {
         blood_group: 'A+',
         status: 'Out-patient'
     });
+
+    useEffect(() => {
+        if (location.state?.openAddModal) {
+            setIsModalOpen(true);
+        }
+    }, [location]);
 
     const fetchPatients = async () => {
         setLoading(true);
@@ -45,6 +53,21 @@ const Patients: React.FC = () => {
             console.error('Fetch error:', err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!window.confirm("Are you sure you want to delete this patient record?")) return;
+
+        try {
+            const { error } = await insforge.database.from('patients').delete().eq('id', id);
+            if (!error) {
+                fetchPatients();
+            } else {
+                alert("Error deleting patient: " + error.message);
+            }
+        } catch (err: any) {
+            alert("Delete failed: " + err.message);
         }
     };
 
@@ -149,8 +172,21 @@ const Patients: React.FC = () => {
                                                 {patient.status}
                                             </span>
                                         </td>
-                                        <td>
-                                            <button className="icon-btn-minimal"><MoreHorizontal size={18} /></button>
+                                        <td className="flex gap-2">
+                                            <button
+                                                className="icon-btn-minimal text-primary"
+                                                onClick={() => alert(`Viewing details for ${patient.full_name}`)}
+                                                title="View Details"
+                                            >
+                                                <Eye size={18} />
+                                            </button>
+                                            <button
+                                                className="icon-btn-minimal text-danger"
+                                                onClick={() => handleDelete(patient.id)}
+                                                title="Delete Record"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
                                         </td>
                                     </tr>
                                 ))

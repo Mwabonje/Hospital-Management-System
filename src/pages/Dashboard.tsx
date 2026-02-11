@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Users,
   Calendar,
   BedDouble,
   Activity,
   ArrowUpRight,
-  MoreVertical,
   Loader2
 } from 'lucide-react';
 import { insforge } from '../utils/insforge';
 
-const StatCard = ({ icon: Icon, label, value, trend, color, loading }: any) => (
-  <div className="premium-card stat-card">
+const StatCard = ({ icon: Icon, label, value, trend, color, loading, onClick }: any) => (
+  <div className="premium-card stat-card clickable" onClick={onClick}>
     <div className="stat-header">
       <div className={`stat-icon-wrapper ${color}`}>
         <Icon size={24} />
@@ -29,6 +29,7 @@ const StatCard = ({ icon: Icon, label, value, trend, color, loading }: any) => (
 );
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalPatients: 0,
     appointmentsToday: 0,
@@ -53,7 +54,7 @@ const Dashboard: React.FC = () => {
         .order('created_at', { ascending: false })
         .limit(5);
 
-      setStats(prev => ({
+      setStats((prev: any) => ({
         ...prev,
         totalPatients: patientsCount || 0,
         appointmentsToday: appointmentsData?.length || 0
@@ -70,6 +71,10 @@ const Dashboard: React.FC = () => {
     fetchDashboardData();
   }, []);
 
+  const handleExport = () => {
+    alert("Generating dashboard report CSV...");
+  };
+
   return (
     <div className="dashboard-page col gap-4">
       <div className="dashboard-header flex justify-between items-center mb-4">
@@ -78,23 +83,60 @@ const Dashboard: React.FC = () => {
           <p className="text-muted">Welcome back, here's what's happening today.</p>
         </div>
         <div className="flex gap-2">
-          <button className="secondary-btn">Export Report</button>
-          <button className="primary-btn-flat">+ Add Patient</button>
+          <button className="secondary-btn" onClick={handleExport}>Export Report</button>
+          <button
+            className="primary-btn-flat"
+            onClick={() => navigate('/patients', { state: { openAddModal: true } })}
+          >
+            + Add Patient
+          </button>
         </div>
       </div>
 
       <div className="stats-grid">
-        <StatCard icon={Users} label="Total Patients" value={stats.totalPatients.toLocaleString()} trend="+12%" color="blue" loading={loading} />
-        <StatCard icon={Calendar} label="Appointments" value={stats.appointmentsToday} trend="+5%" color="purple" loading={loading} />
-        <StatCard icon={BedDouble} label="Surgery Today" value={stats.surgeryToday} trend="-2%" color="orange" />
-        <StatCard icon={Activity} label="Available Beds" value={stats.availableBeds} trend="stable" color="green" />
+        <StatCard
+          icon={Users}
+          label="Total Patients"
+          value={stats.totalPatients.toLocaleString()}
+          trend="+12%"
+          color="blue"
+          loading={loading}
+          onClick={() => navigate('/patients')}
+        />
+        <StatCard
+          icon={Calendar}
+          label="Appointments"
+          value={stats.appointmentsToday}
+          trend="+5%"
+          color="purple"
+          loading={loading}
+          onClick={() => navigate('/appointments')}
+        />
+        <StatCard
+          icon={BedDouble}
+          label="Surgery Today"
+          value={stats.surgeryToday}
+          trend="-2%"
+          color="orange"
+          onClick={() => alert("Surgery Schedule coming soon!")}
+        />
+        <StatCard
+          icon={Activity}
+          label="Available Beds"
+          value={stats.availableBeds}
+          trend="stable"
+          color="green"
+          onClick={() => alert("Bed Management coming soon!")}
+        />
       </div>
 
       <div className="dashboard-main-grid">
         <div className="premium-card main-chart-area">
           <div className="card-title flex justify-between items-center">
             <h3>Recent Appointments</h3>
-            <button className="icon-btn-minimal"><MoreVertical size={18} /></button>
+            <button className="icon-btn-minimal" onClick={() => navigate('/appointments')}>
+              <span className="text-primary text-sm font-bold underline">View All</span>
+            </button>
           </div>
 
           <table className="hms-table w-full">
@@ -115,7 +157,7 @@ const Dashboard: React.FC = () => {
                   </td>
                 </tr>
               ) : recentAppointments.length > 0 ? (
-                recentAppointments.map((apt) => (
+                recentAppointments.map((apt: any) => (
                   <tr key={apt.id}>
                     <td className="font-bold">{apt.patient_name}</td>
                     <td>{apt.type}</td>
@@ -172,6 +214,17 @@ const Dashboard: React.FC = () => {
 
         .stat-card {
           padding: 1.5rem;
+        }
+
+        .stat-card.clickable {
+          cursor: pointer;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card.clickable:hover {
+          transform: translateY(-4px);
+          box-shadow: var(--shadow-lg);
+          border-color: var(--primary);
         }
 
         .stat-header {

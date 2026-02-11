@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, MapPin, Loader2, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, MapPin, Loader2, X, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { insforge } from '../utils/insforge';
 
 interface Appointment {
@@ -72,6 +72,25 @@ const Appointments: React.FC = () => {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Delete this appointment?")) return;
+    try {
+      const { error } = await insforge.database.from('appointments').delete().eq('id', id);
+      if (!error) fetchAppointments();
+    } catch (err) {
+      console.error('Delete error:', err);
+    }
+  };
+
+  const handleUpdateStatus = async (id: string, status: string) => {
+    try {
+      const { error } = await insforge.database.from('appointments').update({ status }).eq('id', id);
+      if (!error) fetchAppointments();
+    } catch (err) {
+      console.error('Update error:', err);
+    }
+  };
+
   return (
     <div className="appointments-page col gap-4">
       <div className="page-header flex justify-between items-center mb-4">
@@ -121,16 +140,50 @@ const Appointments: React.FC = () => {
                     <h4 className="patient-name">{apt.patient_name}</h4>
                     <p className="apt-type">{apt.type}</p>
                   </div>
-                  <div className="apt-time-badge flex items-center gap-1">
-                    <Clock size={14} /> {apt.appointment_time}
+                  <div className="flex col items-end gap-2">
+                    <div className="apt-time-badge flex items-center gap-1">
+                      <Clock size={14} /> {apt.appointment_time}
+                    </div>
+                    <span className={`status-badge-small ${apt.status.toLowerCase()}`}>
+                      {apt.status}
+                    </span>
                   </div>
                 </div>
-                <div className="apt-details flex col gap-2">
-                  <div className="flex items-center gap-2 text-muted">
-                    <CalendarIcon size={14} /> <span>{apt.doctor_name}</span>
+                <div className="apt-details flex justify-between items-center">
+                  <div className="flex col gap-1">
+                    <div className="flex items-center gap-2 text-muted text-xs">
+                      <CalendarIcon size={12} /> <span>{apt.doctor_name}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted text-xs">
+                      <MapPin size={12} /> <span>{apt.room}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-muted">
-                    <MapPin size={14} /> <span>{apt.room}</span>
+                  <div className="flex gap-2">
+                    {apt.status === 'Pending' && (
+                      <button
+                        className="icon-btn-sm text-success"
+                        onClick={() => handleUpdateStatus(apt.id, 'Confirmed')}
+                        title="Confirm"
+                      >
+                        <CheckCircle size={16} />
+                      </button>
+                    )}
+                    {apt.status !== 'Cancelled' && (
+                      <button
+                        className="icon-btn-sm text-warning"
+                        onClick={() => handleUpdateStatus(apt.id, 'Cancelled')}
+                        title="Cancel"
+                      >
+                        <XCircle size={16} />
+                      </button>
+                    )}
+                    <button
+                      className="icon-btn-sm text-danger"
+                      onClick={() => handleDelete(apt.id)}
+                      title="Delete"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -284,6 +337,34 @@ const Appointments: React.FC = () => {
           font-size: 0.75rem;
           font-weight: 700;
         }
+
+        .status-badge-small {
+          font-size: 0.65rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          padding: 0.125rem 0.375rem;
+          border-radius: 4px;
+        }
+        .status-badge-small.confirmed { background: #dcfce7; color: #166534; }
+        .status-badge-small.pending { background: #fef9c3; color: #854d0e; }
+        .status-badge-small.cancelled { background: #fee2e2; color: #991b1b; }
+
+        .icon-btn-sm {
+          padding: 4px;
+          border-radius: 4px;
+          background: #f8fafc;
+          border: 1px solid var(--border);
+          display: flex;
+          color: var(--text-muted);
+        }
+        .icon-btn-sm:hover {
+          background: white;
+          box-shadow: var(--shadow-sm);
+        }
+        .text-success { color: var(--success); }
+        .text-warning { color: var(--warning); }
+        .text-danger { color: var(--danger); }
+        .text-xs { font-size: 0.75rem; }
 
         .modal-overlay {
             position: fixed;
